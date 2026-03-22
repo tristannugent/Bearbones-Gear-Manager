@@ -74,7 +74,6 @@ export async function upsertGear(payload: Partial<GearItem>) {
   if (error) throw error;
   return data;
 }
-}
 
 export async function deleteGear(id: string) {
   const client = assertClient();
@@ -115,7 +114,6 @@ export async function upsertPackage(payload: Partial<GearPackage>) {
 
   if (error) throw error;
   return data;
-}
 }
 
 export async function savePackageItems(packageId: string, gearItemIds: string[]) {
@@ -178,7 +176,6 @@ const rows = params.gearItemIds.map((gear_item_id) => ({
   if (params.packageId) {
     const { error: packageError } = await client.from('gear_packages').update({ status: 'Checked Out' }).eq('id', params.packageId);
     if (packageError) throw packageError;
-  }
 }
 
 export async function returnCheckout(checkoutId: string, gearItemId: string, packageId?: string | null) {
