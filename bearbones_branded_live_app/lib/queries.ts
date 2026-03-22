@@ -177,7 +177,7 @@ const rows = params.gearItemIds.map((gear_item_id) => ({
     const { error: packageError } = await client.from('gear_packages').update({ status: 'Checked Out' }).eq('id', params.packageId);
     if (packageError) throw packageError;
 }
-
+}
 export async function returnCheckout(checkoutId: string, gearItemId: string, packageId?: string | null) {
   const client = assertClient();
   const { error } = await client.from('checkouts').update({ returned_at: new Date().toISOString() }).eq('id', checkoutId);
