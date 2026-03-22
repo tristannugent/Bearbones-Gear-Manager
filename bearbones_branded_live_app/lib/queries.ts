@@ -53,9 +53,27 @@ export async function listGear(search?: string) {
 
 export async function upsertGear(payload: Partial<GearItem>) {
   const client = assertClient();
-  const { data, error } = await client.from('gear_items').upsert(payload).select().single<GearItem>();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await client.auth.getUser();
+
+  if (userError) throw userError;
+  if (!user) throw new Error('You must be signed in.');
+
+  const { data, error } = await client
+    .from('gear_items')
+    .upsert({
+      ...payload,
+      owner_id: user.id,
+    })
+    .select()
+    .single<GearItem>();
+
   if (error) throw error;
   return data;
+}
 }
 
 export async function deleteGear(id: string) {
@@ -77,9 +95,27 @@ export async function listPackages() {
 
 export async function upsertPackage(payload: Partial<GearPackage>) {
   const client = assertClient();
-  const { data, error } = await client.from('gear_packages').upsert(payload).select().single<GearPackage>();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await client.auth.getUser();
+
+  if (userError) throw userError;
+  if (!user) throw new Error('You must be signed in.');
+
+  const { data, error } = await client
+    .from('gear_packages')
+    .upsert({
+      ...payload,
+      owner_id: user.id,
+    })
+    .select()
+    .single<GearPackage>();
+
   if (error) throw error;
   return data;
+}
 }
 
 export async function savePackageItems(packageId: string, gearItemIds: string[]) {
@@ -118,14 +154,23 @@ export async function checkoutItems(params: {
   notes?: string | null;
 }) {
   const client = assertClient();
-  const rows = params.gearItemIds.map((gear_item_id) => ({
-    gear_item_id,
-    package_id: params.packageId ?? null,
-    assignee_name: params.assigneeName ?? null,
-    project_name: params.projectName ?? null,
-    due_back: params.dueBack ?? null,
-    notes: params.notes ?? null,
-  }));
+  const {
+  data: { user },
+  error: userError,
+} = await client.auth.getUser();
+
+if (userError) throw userError;
+if (!user) throw new Error('You must be signed in.');
+
+const rows = params.gearItemIds.map((gear_item_id) => ({
+  owner_id: user.id,
+  gear_item_id,
+  package_id: params.packageId ?? null,
+  assignee_name: params.assigneeName ?? null,
+  project_name: params.projectName ?? null,
+  due_back: params.dueBack ?? null,
+  notes: params.notes ?? null,
+}));
   const { error } = await client.from('checkouts').insert(rows satisfies Partial<CheckoutRecord>[]);
   if (error) throw error;
   const { error: gearError } = await client.from('gear_items').update({ status: 'Checked Out' }).in('id', params.gearItemIds);
